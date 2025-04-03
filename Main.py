@@ -72,10 +72,21 @@ print("")
 print("Velocity Used: " + str(velUsed))
 
 print("")
-print(testAngle(velUsed, gravUsed, 45))
+print(testAngle(velUsed, gravUsed, math.radians(50)))
 
-for i in range(500):
-    print(i)
+angles = []
+distances = []
+
+for i in range(90000):
+    angle = i*0.001
+    angles.append(angle)
+    distances.append(testAngle(velUsed, gravUsed, math.radians(angle)))
+
+plt.plot(angles, distances)
+plt.ylabel("Distance (m)")
+plt.xlabel("Angle (degrees)")
+plt.show()
+
 
 
 
