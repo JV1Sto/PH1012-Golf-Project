@@ -71,22 +71,37 @@ if velInput == 4:
 print("")
 print("Velocity Used: " + str(velUsed))
 
-print("")
-print(testAngle(velUsed, gravUsed, math.radians(50)))
 
+print("")
 angles = []
 distances = []
 
+#tests angles between 0-90 deg in steps of 0.001 of a degree
 for i in range(90000):
     angle = i*0.001
     angles.append(angle)
     distances.append(testAngle(velUsed, gravUsed, math.radians(angle)))
 
+
+#currently a placeholder plot, we can do a lot more with these
+#but currently the plot isn't particularly interesting
 plt.plot(angles, distances)
 plt.ylabel("Distance (m)")
 plt.xlabel("Angle (degrees)")
 plt.show()
 
+
+distances.sort()
+print("maximum distance found by brute force: " + str(distances[len(distances)-1]))
+
+#best fit line code
+#currently also a placeholder
+#I believe there's a way to get the code to determine the degree
+#but for now I've entered it manually
+
+#currently work in progress and does not function
+fitLn = np.polyfit(angles, distances, 2)
+print(fitLn)
 
 
 
