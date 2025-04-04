@@ -1,14 +1,17 @@
 #imports
 import math
+
+import numpy
 import numpy as np
+import numpy.polynomial.polynomial as npp
 import pandas as pd
 import matplotlib.pyplot as plt
 
 #constants
 
 #gravity values in ms^-2
-gravSta = 0
-gravBolivia = 0
+gravSta = 9.81
+gravBolivia = 9.81
 gravAvg = 9.80665
 #currently placeholders
 gravUsed = 0
@@ -35,16 +38,8 @@ if gravInput == 2:
 if gravInput == 3:
     gravUsed = gravAvg
 if gravInput == 4:
-    gravUsed = input("Please enter your own Gravity Value (in ms^-2): ")
+    gravUsed = float(input("Please enter your own Gravity Value (in ms^-2): "))
 
-
-#methods
-
-#currently also a placeholder
-#uses the most basic form of projectile motion
-#will be updated when more research has been done
-def testAngle(vel, grav, angle):
-    return (vel**2 * math.sin(2 * angle))/grav
 
 
 
@@ -66,10 +61,19 @@ if velInput == 2:
 if velInput == 3:
     velUsed = velHigh
 if velInput == 4:
-    velUsed = input("Please enter your own Velocity Value (in ms^-2): ")
+    velUsed = float(input("Please enter your own Velocity Value (in ms^-2): "))
 
 print("")
 print("Velocity Used: " + str(velUsed))
+
+
+#methods
+
+#currently also a placeholder
+#uses the most basic form of projectile motion
+#will be updated when more research has been done
+def testAngle(vel, grav, angle):
+    return (vel**2 * math.sin(2 * angle))/grav
 
 
 print("")
@@ -90,19 +94,20 @@ plt.ylabel("Distance (m)")
 plt.xlabel("Angle (degrees)")
 plt.show()
 
+distArr = np.array(distances)
+angleIndex = np.where(distArr == max(distArr))
 
-distances.sort()
-print("maximum distance found by brute force: " + str(distances[len(distances)-1]))
-
+print("Maximum found by brute force: " + str(distArr.max()))
+print("Found at an angle of " + str(angles[angleIndex[0][0]]) + " degrees")
 #best fit line code
 #currently also a placeholder
 #I believe there's a way to get the code to determine the degree
 #but for now I've entered it manually
 
 #currently work in progress and does not function
-fitLn = np.polyfit(angles, distances, 2)
-print(fitLn)
-
-
-
-
+fitLn = npp.polyfit(angles, distances, 2)
+fitArr = np.array(fitLn)
+poly = np.polynomial.polynomial.Polynomial(fitArr)
+print("Best fit equation found: " + str(poly))
+print("Best angle found by best fit: " + str(poly.deriv().roots()))
+print("Distance at above angle according to best fit: " + str(poly(poly.deriv().roots())))
