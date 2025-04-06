@@ -20,7 +20,7 @@ gravUsed = 0
 velLow = 45
 velMed = 60
 velHigh = 75
-#also currently placeholders, but values found online
+#also currently placeholders, but these are seemingly reasonable values found online
 velUsed = 0
 
 print("Select Gravity Value")
@@ -80,9 +80,10 @@ print("")
 angles = []
 distances = []
 
-#tests angles between 0-90 deg in steps of 0.001 of a degree
-for i in range(90000):
-    angle = i*0.001
+#tests angles between 0-90 deg in steps determined by the number of iterations
+iterations = 10000
+for i in range(iterations):
+    angle = i*(90/iterations)
     angles.append(angle)
     distances.append(testAngle(velUsed, gravUsed, math.radians(angle)))
 
