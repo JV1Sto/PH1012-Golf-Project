@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 #gravity values in ms^-2
 gravSta = 9.81
 gravBolivia = 9.81
+gravPhilippines = 9.81
 gravAvg = 9.80665
 #currently placeholders
 gravUsed = 0
@@ -27,7 +28,8 @@ print("Select Gravity Value")
 print("Input 1 for St Andrews")
 print("Input 2 for Bolivia")
 print("Input 3 for Average")
-print("Input 4 to input your own")
+print("Input 4 for Philippines")
+print("Input 5 to input your own")
 
 
 gravInput = int(input("Enter Gravity Value: "))
@@ -38,6 +40,8 @@ if gravInput == 2:
 if gravInput == 3:
     gravUsed = gravAvg
 if gravInput == 4:
+    gravUsed = gravPhilippines
+if gravInput == 5:
     gravUsed = float(input("Please enter your own Gravity Value (in ms^-2): "))
 
 
