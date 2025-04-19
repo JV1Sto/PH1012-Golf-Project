@@ -85,7 +85,7 @@ angles = []
 distances = []
 
 #tests angles between 0-90 deg in steps determined by the number of iterations
-iterations = 10000
+iterations = 100000
 for i in range(iterations):
     angle = i*(90/iterations)
     angles.append(angle)
@@ -98,6 +98,7 @@ plt.plot(angles, distances)
 plt.ylabel("Distance (m)")
 plt.xlabel("Angle (degrees)")
 plt.show()
+
 
 distArr = np.array(distances)
 angleIndex = np.where(distArr == max(distArr))
