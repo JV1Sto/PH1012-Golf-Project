@@ -24,6 +24,13 @@ velHigh = 75
 #also currently placeholders, but these are seemingly reasonable values found online
 velUsed = 0
 
+
+windHi = 30
+windMed = 20
+windLo = 10
+windUsed = 0
+
+
 print("Select Gravity Value")
 print("Input 1 for St Andrews")
 print("Input 2 for Bolivia")
@@ -70,14 +77,99 @@ if velInput == 4:
 print("")
 print("Velocity Used: " + str(velUsed))
 
+print("")
+print("Select Wind Speed Value at Reference Height")
+print("Input 1 for 10 m/s")
+print("Input 2 for 20 m/s")
+print("Input 3 for 30 m/s")
+print("Input 4 to input your own")
+windInput = int(input("Enter Wind Speed Value: "))
+if windInput == 1:
+    windUsed = windLo
+if windInput == 2:
+    windUsed = windMed
+if windInput == 3:
+    windUsed = windHi
+if windInput == 4:
+    windUsed = float(input("Please enter your own Wind Speed Value (in m/s): "))
 
+initSpin = 2000 * (2*math.pi/60)
+densityUsed = 1.007
+ballMass = 464
 #methods
 
 #currently also a placeholder
 #uses the most basic form of projectile motion
 #will be updated when more research has been done
+ballArea = (21.4*10**-3)**2 * math.pi
+ZRef = 10
+Z0 = 0.4
+Cl = 0.1
+Cd = 0.3
+decayConstant = 24.5
+
+
+
+def findWindSPD(currentHeight):
+    if currentHeight < Z0:
+        return 0
+    return windUsed*((math.log(currentHeight)-math.log(Z0))/(math.log(ZRef)-math.log(Z0)))
+
+def spinParameter(time):
+    return initSpin * (math.e ** (-time / decayConstant))
+
+def Rd(vel, height):
+    return -0.5 * Cd * densityUsed * ballArea * (abs((vel - findWindSPD(height)) * (vel - findWindSPD(height))))
+
+def Rm(vel, height, time):
+    return (0.5 * Cl * densityUsed * ballArea * (abs((spinParameter(time)) * (vel - findWindSPD(height)))) *
+            (spinParameter(time) * (vel - findWindSPD(height))))
+
 def testAngle(vel, grav, angle):
-    return (vel**2 * math.sin(2 * angle))/grav
+    currentHeight = 0.0001
+    velX = vel*math.cos(angle)
+    velY = vel*math.sin(angle)
+    distX = 0.0
+    distY = 0.0
+    timeCurrent = 0.0
+    timePrevious = 0.0
+    timeIncrement = float(1/1000)
+    #while currentHeight > 0.0:
+    for i in range(10):
+        print("vel y ", velY)
+        print("vel x ", velX)
+        print("")
+        print("dist y ", distY)
+        print("dist x ", distX)
+        timeCurrent = timeCurrent + timeIncrement
+        print("")
+        print("time is ", timeCurrent)
+        distX += velX * (timeCurrent - timePrevious)
+        distY += velY * (timeCurrent - timePrevious)
+        distY = currentHeight
+        velTot = velX + velY
+        alpha = math.atan2(velY, velX)
+        print("alpha ", alpha)
+        print("vel tot ", velTot)
+        print("")
+        print("spin ", spinParameter(timeCurrent))
+
+
+
+        velX = velX + (((1/ballMass) * (Rd(velTot, currentHeight) * math.cos(alpha) -
+                                       Rm(velTot, currentHeight, timeCurrent)* math.sin(alpha)))* (timeCurrent - timePrevious))
+        print("vel x calc ", ((1/ballMass) * (Rd(velTot, currentHeight) * math.cos(alpha) -
+                                       Rm(velTot, currentHeight, timeCurrent)* math.sin(alpha))) * (timeCurrent - timePrevious))
+
+        velY = velY + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent) * math.cos(alpha)) -
+                                         (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * (timeCurrent - timePrevious))
+        print("vel y calc", (((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent) * math.cos(alpha)) - (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * (timeCurrent - timePrevious))
+
+
+        timePrevious = timeCurrent
+
+
+    return distX
 
 
 print("")
@@ -85,7 +177,7 @@ angles = []
 distances = []
 
 #tests angles between 0-90 deg in steps determined by the number of iterations
-iterations = 100000
+iterations = 9
 for i in range(iterations):
     angle = i*(90/iterations)
     angles.append(angle)
