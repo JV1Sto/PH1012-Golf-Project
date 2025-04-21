@@ -106,8 +106,6 @@ ballRadius = 21.4
 ballArea = (ballRadius*10**-3)**2 * math.pi
 ZRef = 10
 Z0 = 0.4
-Cl = 0.1
-Cd = 0.3
 #k is a constant for dimpled balls
 k = 0.5
 
