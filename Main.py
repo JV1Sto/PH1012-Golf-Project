@@ -1,5 +1,6 @@
 #imports
 import math
+from time import thread_time, sleep
 
 import numpy
 import numpy as np
@@ -95,38 +96,46 @@ if windInput == 4:
 
 initSpin = 2000 * (2*math.pi/60)
 densityUsed = 1.007
-ballMass = 464
+ballMass = 0.0464
 #methods
 
 #currently also a placeholder
 #uses the most basic form of projectile motion
 #will be updated when more research has been done
-ballArea = (21.4*10**-3)**2 * math.pi
+ballRadius = 21.4
+ballArea = (ballRadius*10**-3)**2 * math.pi
 ZRef = 10
 Z0 = 0.4
 Cl = 0.1
 Cd = 0.3
+#k is a constant for dimpled balls
+k = 0.5
+
+yds2meters = 3.281
+
+
 decayConstant = 24.5
 
-
+def Cl(vel, time):
+    w = initSpin * (math.e ** (-time / decayConstant))
+    return (k * (ballRadius*10**-3) * w)/vel
+def Cd(vel):
+    return 46/(vel*yds2meters)
 
 def findWindSPD(currentHeight):
     if currentHeight < Z0:
         return 0
     return windUsed*((math.log(currentHeight)-math.log(Z0))/(math.log(ZRef)-math.log(Z0)))
 
-def spinParameter(time):
-    return initSpin * (math.e ** (-time / decayConstant))
-
 def Rd(vel, height):
-    return -0.5 * Cd * densityUsed * ballArea * (abs((vel - findWindSPD(height)) * (vel - findWindSPD(height))))
+    return 0.5 * Cd(vel) * densityUsed * ballArea * (abs((vel - findWindSPD(height)) * (vel - findWindSPD(height))))
 
 def Rm(vel, height, time):
-    return (0.5 * Cl * densityUsed * ballArea * (abs((spinParameter(time)) * (vel - findWindSPD(height)))) *
-            (spinParameter(time) * (vel - findWindSPD(height))))
+    return 0.5 * Cl(vel, time) * densityUsed * ballArea * (abs((vel - findWindSPD(height))) * (vel - findWindSPD(height)))
+dist1 = []
 
 def testAngle(vel, grav, angle):
-    currentHeight = 0.0001
+    currentHeight = float(0.0001)
     velX = vel*math.cos(angle)
     velY = vel*math.sin(angle)
     distX = 0.0
@@ -134,41 +143,39 @@ def testAngle(vel, grav, angle):
     timeCurrent = 0.0
     timePrevious = 0.0
     timeIncrement = float(1/1000)
+    i = 0
     #while currentHeight > 0.0:
-    for i in range(10):
-        print("vel y ", velY)
-        print("vel x ", velX)
-        print("")
-        print("dist y ", distY)
-        print("dist x ", distX)
+    while currentHeight > 0:
+        i += 1
+        #print("vel y ", velY)
+        #print("dist y ", distY)
         timeCurrent = timeCurrent + timeIncrement
-        print("")
-        print("time is ", timeCurrent)
         distX += velX * (timeCurrent - timePrevious)
         distY += velY * (timeCurrent - timePrevious)
-        distY = currentHeight
+        #print(distY + (velY * (timeCurrent - timePrevious)))
+        currentHeight = distY
         velTot = velX + velY
         alpha = math.atan2(velY, velX)
-        print("alpha ", alpha)
-        print("vel tot ", velTot)
-        print("")
-        print("spin ", spinParameter(timeCurrent))
+        #print("dist y ", distY)
+
+        #print("")
+
 
 
 
         velX = velX + (((1/ballMass) * (Rd(velTot, currentHeight) * math.cos(alpha) -
                                        Rm(velTot, currentHeight, timeCurrent)* math.sin(alpha)))* (timeCurrent - timePrevious))
-        print("vel x calc ", ((1/ballMass) * (Rd(velTot, currentHeight) * math.cos(alpha) -
-                                       Rm(velTot, currentHeight, timeCurrent)* math.sin(alpha))) * (timeCurrent - timePrevious))
 
         velY = velY + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent) * math.cos(alpha)) -
                                          (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * (timeCurrent - timePrevious))
-        print("vel y calc", (((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent) * math.cos(alpha)) - (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * (timeCurrent - timePrevious))
-
+        if i%100 == 0:
+            print("vel y", velY)
+            print("current height ", currentHeight)
+            print("alpha ", math.degrees(alpha))
 
         timePrevious = timeCurrent
 
-
+    dist1.append(distX)
     return distX
 
 
@@ -177,12 +184,13 @@ angles = []
 distances = []
 
 #tests angles between 0-90 deg in steps determined by the number of iterations
-iterations = 9
+iterations = 10
 for i in range(iterations):
     angle = i*(90/iterations)
     angles.append(angle)
     distances.append(testAngle(velUsed, gravUsed, math.radians(angle)))
-
+print(dist1)
+print(distances)
 
 #currently a placeholder plot, we can do a lot more with these
 #but currently the plot isn't particularly interesting
