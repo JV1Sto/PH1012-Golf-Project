@@ -1,5 +1,6 @@
 #imports
 import math
+from math import atan2
 from time import thread_time, sleep
 
 import numpy
@@ -94,7 +95,7 @@ if windInput == 3:
 if windInput == 4:
     windUsed = float(input("Please enter your own Wind Speed Value (in m/s): "))
 
-initSpin = 2000 * (2*math.pi/60)
+initSpin = 5000 * (2*math.pi/60)
 densityUsed = 1.007
 ballMass = 0.0464
 #methods
@@ -152,7 +153,7 @@ def testAngle(vel, grav, angle):
         distY += velY * (timeCurrent - timePrevious)
         #print(distY + (velY * (timeCurrent - timePrevious)))
         currentHeight = distY
-        velTot = velX + velY
+        velTot = math.sqrt((velX**2) + (velY**2))
         alpha = math.atan2(velY, velX)
         #print("dist y ", distY)
 
@@ -162,18 +163,14 @@ def testAngle(vel, grav, angle):
 
 
         velX = velX + (((1/ballMass) * (Rd(velTot, currentHeight) * math.cos(alpha) -
-                                       Rm(velTot, currentHeight, timeCurrent)* math.sin(alpha)))* (timeCurrent - timePrevious))
+                                       Rm(velTot, currentHeight, timeCurrent)* math.sin(alpha)))* (timeIncrement))
 
         velY = velY + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent) * math.cos(alpha)) -
-                                         (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * (timeCurrent - timePrevious))
-        if i%100 == 0:
-            print("vel y", velY)
-            print("current height ", currentHeight)
-            print("alpha ", math.degrees(alpha))
+                                         (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * (timeIncrement))
+
 
         timePrevious = timeCurrent
 
-    dist1.append(distX)
     return distX
 
 
@@ -182,7 +179,7 @@ angles = []
 distances = []
 
 #tests angles between 0-90 deg in steps determined by the number of iterations
-iterations = 10
+iterations = 100
 for i in range(iterations):
     angle = i*(90/iterations)
     angles.append(angle)
