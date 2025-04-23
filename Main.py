@@ -1,12 +1,8 @@
 #imports
 import math
 from math import atan2
-from time import thread_time, sleep
-
-import numpy
 import numpy as np
 import numpy.polynomial.polynomial as npp
-import pandas as pd
 import matplotlib.pyplot as plt
 
 #constants
@@ -33,7 +29,6 @@ gravUsed = 0
 velLow = 60
 velMed = 70
 velHigh = 80
-#also currently placeholders, but these are seemingly reasonable values found online
 velUsed = 0
 
 
@@ -145,7 +140,8 @@ VminBounce = 0.4
 minTheta = math.radians(10)
 
 def airDensity(temp, pressure, RelHumid):
-    return ((gasConstWaterVap * pressure) + (6.122 * (gasConstAir - gasConstWaterVap)) * (RelHumid * math.exp((17.62*temp)/(243.12+temp)))) / (gasConstAir * gasConstWaterVap * (temp + 273.15))
+    return ((gasConstWaterVap * pressure) + (6.122 * (gasConstAir - gasConstWaterVap)) *
+            (RelHumid * math.exp((17.62*temp)/(243.12+temp)))) / (gasConstAir * gasConstWaterVap * (temp + 273.15))
 
 
 def Cl(vel, time, initSpn):
@@ -182,6 +178,7 @@ def Rm(vel, height, time, initialspin):
     return 0.5 * Cl(vel, time, initialspin) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height))) * (vel - findWindSPD(height)))
 
 
+# noinspection DuplicatedCode
 def testAngle(vel, grav, angle):
     bounce = True
     currentHeight = float(0.0001)
