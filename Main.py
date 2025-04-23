@@ -95,8 +95,16 @@ if windInput == 3:
 if windInput == 4:
     windUsed = float(input("Please enter your own Wind Speed Value (in m/s): "))
 
+
+tempC = 15
+relHum = 90
+pressure = 100900
+
+gasConstWaterVap = 461.5
+gasConstAir = 287.05
+
 initSpin = 5000 * (2*math.pi/60)
-densityUsed = 1.007
+
 ballMass = 0.0464
 #methods
 
@@ -115,23 +123,43 @@ yds2meters = 3.281
 
 decayConstant = 24.5
 
+def airDensity(temp, pressure, RelHumid):
+    return ((gasConstWaterVap * pressure) + (6.122 * (gasConstAir - gasConstWaterVap)) * (RelHumid * math.exp((17.62*temp)/(243.12+temp)))) / (gasConstAir * gasConstWaterVap * (temp + 273.15))
+
+
 def Cl(vel, time):
-    w = initSpin * (math.e ** (-time / decayConstant))
-    return (k * (ballRadius*10**-3) * w)/vel
+    w = initSpin * (math.exp(-time / decayConstant))
+    return (k * (ballRadius*1e-3) * w)/vel
 def Cd(vel):
+    if vel < 1e-2:
+        vel = 1e-2
     return 46/(vel*yds2meters)
 
 def findWindSPD(currentHeight):
-    if currentHeight < Z0:
+    if currentHeight <= Z0 or windUsed == 0:
         return 0
-    return windUsed*((math.log(currentHeight)-math.log(Z0))/(math.log(ZRef)-math.log(Z0)))
+    try:
+        if currentHeight < 1e-5:
+            currentHeight = 1e-5
+        return windUsed * ((math.log(currentHeight) - math.log(Z0)) /
+                           (math.log(ZRef) - math.log(Z0)))
+    except (ValueError, OverflowError):
+        return 0
 
 def Rd(vel, height):
-    return 0.5 * Cd(vel) * densityUsed * ballArea * (abs((vel - findWindSPD(height)) * (vel - findWindSPD(height))))
+    if height > 1e-6:
+        height = height
+    else:
+        height = 1e-6
+    return 0.5 * Cd(vel) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height)) * (vel - findWindSPD(height))))
 
 def Rm(vel, height, time):
-    return 0.5 * Cl(vel, time) * densityUsed * ballArea * (abs((vel - findWindSPD(height))) * (vel - findWindSPD(height)))
-dist1 = []
+    if height > 1e-6:
+        height = height
+    else:
+        height = 1e-6
+    return 0.5 * Cl(vel, time) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height))) * (vel - findWindSPD(height)))
+
 
 def testAngle(vel, grav, angle):
     currentHeight = float(0.0001)
@@ -139,52 +167,40 @@ def testAngle(vel, grav, angle):
     velY = vel*math.sin(angle)
     distX = 0.0
     distY = 0.0
-    timeCurrent = 0.0
-    timePrevious = 0.0
+    timeCurrent = 0
     timeIncrement = float(1/1000)
     i = 0
     #while currentHeight > 0.0:
     while currentHeight > 0:
-        i += 1
-        #print("vel y ", velY)
-        #print("dist y ", distY)
-        timeCurrent = timeCurrent + timeIncrement
-        distX += velX * (timeCurrent - timePrevious)
-        distY += velY * (timeCurrent - timePrevious)
-        #print(distY + (velY * (timeCurrent - timePrevious)))
+        timeCurrent += timeIncrement
+        distX += velX * timeIncrement
+        distY += velY * timeIncrement
         currentHeight = distY
+
         velTot = math.sqrt((velX**2) + (velY**2))
         alpha = math.atan2(velY, velX)
-        #print("dist y ", distY)
-
-        #print("")
 
 
+        velX += (((1/ballMass) * (-Rd(velTot, currentHeight) * math.cos(alpha) -
+                                       Rm(velTot, currentHeight, timeCurrent)* math.sin(alpha))) * timeIncrement)
 
+        velY += + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent) * math.cos(alpha)) -
+                                         (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * timeIncrement)
 
-        velX = velX + (((1/ballMass) * (Rd(velTot, currentHeight) * math.cos(alpha) -
-                                       Rm(velTot, currentHeight, timeCurrent)* math.sin(alpha)))* (timeIncrement))
-
-        velY = velY + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent) * math.cos(alpha)) -
-                                         (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * (timeIncrement))
-
-
-        timePrevious = timeCurrent
+        #print(i)
 
     return distX
-
 
 print("")
 angles = []
 distances = []
 
 #tests angles between 0-90 deg in steps determined by the number of iterations
-iterations = 100
+iterations = 1000
 for i in range(iterations):
     angle = i*(90/iterations)
     angles.append(angle)
     distances.append(testAngle(velUsed, gravUsed, math.radians(angle)))
-print(dist1)
 print(distances)
 
 #currently a placeholder plot, we can do a lot more with these
