@@ -10,28 +10,40 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 #constants
+tempC = 15
+relHum = 90
+pressure = 100900
+gasConstWaterVap = 461.5
+gasConstAir = 287.05
+ballMass = 0.0464
+ballRadius = 21.4
+ballArea = (ballRadius*10**-3)**2 * math.pi
+ZRef = 10
+Z0 = 0.4
+
 
 #gravity values in ms^-2
-gravSta = 9.81
-gravBolivia = 9.81
-gravPhilippines = 9.81
-gravAvg = 9.80665
-#currently placeholders
+gravSta = 9.81618225
+gravBolivia = 9.774220451
+gravPhilippines = 9.782893875
+gravAvg = 9.81
 gravUsed = 0
 
 #velocity values in ms^-1
-velLow = 45
-velMed = 60
-velHigh = 75
+velLow = 60
+velMed = 70
+velHigh = 80
 #also currently placeholders, but these are seemingly reasonable values found online
 velUsed = 0
 
 
-windHi = 30
-windMed = 20
-windLo = 10
+windLo = 1
+windMed = 4
+windHi = 8
 windUsed = 0
 
+AvgProMenSpin = 2686
+AvgProWomSpin = 2611
 
 print("Select Gravity Value")
 print("Input 1 for St Andrews")
@@ -96,25 +108,29 @@ if windInput == 4:
     windUsed = float(input("Please enter your own Wind Speed Value (in m/s): "))
 
 
-tempC = 15
-relHum = 90
-pressure = 100900
+print("")
+print("Select initial spin")
+print("Input 1 for Average Pro Women's Spin")
+print("Input 2 for Average Pro Men's Spin")
+print("Input 3 to input your own")
+spinPut = int(input("Enter Wind Spin Value in RPM's: "))
+if spinPut == 1:
+    spinUsd = AvgProWomSpin
+if spinPut == 2:
+    spinUsd = AvgProMenSpin
+if spinPut == 3:
+    spinUsd = float(input("Please enter your own Spin Speed Value (in RPM's): "))
+else:
+    spinUsd = AvgProWomSpin
 
-gasConstWaterVap = 461.5
-gasConstAir = 287.05
+initSpin = spinUsd * (2*math.pi/60)
 
-initSpin = 5000 * (2*math.pi/60)
-
-ballMass = 0.0464
 #methods
 
 #currently also a placeholder
 #uses the most basic form of projectile motion
 #will be updated when more research has been done
-ballRadius = 21.4
-ballArea = (ballRadius*10**-3)**2 * math.pi
-ZRef = 10
-Z0 = 0.4
+
 #k is a constant for dimpled balls
 k = 0.5
 
