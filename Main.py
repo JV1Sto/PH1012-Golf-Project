@@ -123,12 +123,17 @@ yds2meters = 3.281
 
 decayConstant = 24.5
 
+newtonCoeff = 0.7
+mewK = 0.04
+VminBounce = 0.4
+minTheta = math.radians(10)
+
 def airDensity(temp, pressure, RelHumid):
     return ((gasConstWaterVap * pressure) + (6.122 * (gasConstAir - gasConstWaterVap)) * (RelHumid * math.exp((17.62*temp)/(243.12+temp)))) / (gasConstAir * gasConstWaterVap * (temp + 273.15))
 
 
-def Cl(vel, time):
-    w = initSpin * (math.exp(-time / decayConstant))
+def Cl(vel, time, initSpn):
+    w = initSpn * (math.exp(-time / decayConstant))
     return (k * (ballRadius*1e-3) * w)/vel
 def Cd(vel):
     if vel < 1e-2:
@@ -153,15 +158,16 @@ def Rd(vel, height):
         height = 1e-6
     return 0.5 * Cd(vel) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height)) * (vel - findWindSPD(height))))
 
-def Rm(vel, height, time):
+def Rm(vel, height, time, initialspin):
     if height > 1e-6:
         height = height
     else:
         height = 1e-6
-    return 0.5 * Cl(vel, time) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height))) * (vel - findWindSPD(height)))
+    return 0.5 * Cl(vel, time, initialspin) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height))) * (vel - findWindSPD(height)))
 
 
 def testAngle(vel, grav, angle):
+    bounce = True
     currentHeight = float(0.0001)
     velX = vel*math.cos(angle)
     velY = vel*math.sin(angle)
@@ -182,13 +188,42 @@ def testAngle(vel, grav, angle):
 
 
         velX += (((1/ballMass) * (-Rd(velTot, currentHeight) * math.cos(alpha) -
-                                       Rm(velTot, currentHeight, timeCurrent)* math.sin(alpha))) * timeIncrement)
+                                       Rm(velTot, currentHeight, timeCurrent, initSpin)* math.sin(alpha))) * timeIncrement)
 
-        velY += + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent) * math.cos(alpha)) -
+        velY += + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent, initSpin) * math.cos(alpha)) -
                                          (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * timeIncrement)
 
         #print(i)
 
+    while bounce:
+        if abs(velY) < VminBounce:
+            bounce = False
+        elif -minTheta < atan2(velY, velX):
+            bounce = False
+        else:
+            bounce = True
+
+        distY = 0.0001
+        currentHeight = distY
+        dt = 0
+        velX = velX - (mewK * (1 + newtonCoeff) * abs(velY))
+        velY = velY * -newtonCoeff
+        newSpinInit = (5 / (2 * ballRadius) * (mewK * (1 + newtonCoeff) * abs(velY)))
+        while currentHeight > 0:
+            dt += timeIncrement
+            distX += velX * timeIncrement
+            distY += velY * timeIncrement
+            currentHeight = distY
+
+            velTot = math.sqrt((velX ** 2) + (velY ** 2))
+            alpha = math.atan2(velY, velX)
+
+            velX += (((1 / ballMass) * (-Rd(velTot, currentHeight) * math.cos(alpha) -
+                                        Rm(velTot, currentHeight, timeCurrent, newSpinInit) * math.sin(
+                        alpha))) * timeIncrement)
+
+            velY += + ((((1 / ballMass) * ((Rm(velTot, currentHeight, timeCurrent, newSpinInit) * math.cos(alpha)) -
+                                           (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * timeIncrement)
     return distX
 
 print("")
@@ -196,7 +231,7 @@ angles = []
 distances = []
 
 #tests angles between 0-90 deg in steps determined by the number of iterations
-iterations = 1000
+iterations = 100
 for i in range(iterations):
     angle = i*(90/iterations)
     angles.append(angle)
