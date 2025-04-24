@@ -87,19 +87,18 @@ print("Gravity Used: " + str(gravUsed))
 
 print("")
 print("Select Velocity Value")
-print("Input 1 for 61.7 ms^-1")
-print("Input 2 for 77.3 ms^-1")
-print("Input 3 for 85 ms^-1")
-print("Input 4 to input your own")
+print("Input 1 for Average Women's Pro Velocity")
+print("Input 2 for Average Men's Pro Velocity")
+print("Input 3 to input your own")
 
 velInput = int(input("Enter Velocity Value: "))
 if velInput == 1:
     velUsed = velLow
 if velInput == 2:
     velUsed = velMed
-if velInput == 3:
-    velUsed = velHigh
 if velInput == 4:
+    velUsed = velHigh
+if velInput == 3:
     velUsed = float(input("Please enter your own Velocity Value (in ms^-2): "))
 
 print("")
