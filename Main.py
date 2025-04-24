@@ -6,7 +6,7 @@ import numpy.polynomial.polynomial as npp
 import matplotlib.pyplot as plt
 
 #constants
-k = 0.5
+k = 1.6
 yds2meters = 3.281
 decayConstant = 24.5
 newtonCoeff = 0.7
@@ -31,7 +31,7 @@ pressureBol = 103200
 pressurePhil = 101300
 
 
-humSta = 42
+humSta = 80
 humBol = 42
 humPhil = 77
 relHum = 90
