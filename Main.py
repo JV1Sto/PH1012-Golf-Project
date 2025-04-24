@@ -105,37 +105,32 @@ print("")
 print("Velocity Used: " + str(velUsed))
 
 
+#print("")
+#print("Select headwind or tailwind")
+#print("Input 1 for headwind")
+#print("Input 2 for tailwind")
+#print("Input 3 for no wind")
+#headWind = int(input("please select wind direction: "))
+
+
+#if headWind != 3:
 print("")
-print("Select headwind or tailwind")
-print("Input 1 for headwind")
-print("Input 2 for tailwind")
-print("Input 3 for no wind")
-headWind = int(input("please select wind direction: "))
+print("Select Wind Speed Value at Reference Height")
+print("Input 1 for Saint Andrews")
+print("Input 2 for Bolivia")
+print("Input 3 for Philippines")
+print("Input 4 to input your own")
+windInput = int(input("Enter Wind Speed Value: "))
+if windInput == 1:
+    windUsed = windSta
+if windInput == 2:
+    windUsed = windBol
+if windInput == 3:
+    windUsed = windPhil
+if windInput == 4:
+    windUsed = float(input("Please enter your own Wind Speed Value (in m/s): "))
 
 
-if headWind != 3:
-    print("")
-    print("Select Wind Speed Value at Reference Height")
-    print("Input 1 for Saint Andrews")
-    print("Input 2 for Bolivia")
-    print("Input 3 for Philippines")
-    print("Input 4 to input your own")
-    windInput = int(input("Enter Wind Speed Value: "))
-    if windInput == 1:
-        windUsed = windSta
-    if windInput == 2:
-        windUsed = windBol
-    if windInput == 3:
-        windUsed = windPhil
-    if windInput == 4:
-        windUsed = float(input("Please enter your own Wind Speed Value (in m/s): "))
-
-if headWind == 1:
-    windUsed = -windUsed
-if headWind == 2:
-    windUsed = windUsed
-if headWind == 3:
-    windUsed = 0
 print("")
 print("Wind Used: " + str(windUsed))
 
@@ -232,35 +227,34 @@ def Cd(vel):
         vel = 1e-2
     return 46/(vel*yds2meters)
 
-def findWindSPD(currentHeight):
-    if currentHeight <= Z0 or windUsed == 0:
+def findWindSPD(currentHeight, wind):
+    if currentHeight <= Z0 or wind == 0:
         return 0
     try:
         if currentHeight < 1e-5:
             currentHeight = 1e-5
-        return windUsed * ((math.log(currentHeight) - math.log(Z0)) /
+        return wind * ((math.log(currentHeight) - math.log(Z0)) /
                            (math.log(ZRef) - math.log(Z0)))
     except (ValueError, OverflowError):
         return 0
 
-def Rd(vel, height):
+def Rd(vel, height, wind):
     if height > 1e-6:
         height = height
     else:
         height = 1e-6
-    return 0.5 * Cd(vel) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height)) * (vel - findWindSPD(height))))
+    return 0.5 * Cd(vel) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height, wind)) * (vel - findWindSPD(height, wind))))
 
-def Rm(vel, height, time, initialspin):
+def Rm(vel, height, time, initialspin, wind):
     if height > 1e-6:
         height = height
     else:
         height = 1e-6
-    return 0.5 * Cl(vel, time, initialspin) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height))) * (vel - findWindSPD(height)))
+    return 0.5 * Cl(vel, time, initialspin) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height, wind))) * (vel - findWindSPD(height, wind)))
 
-distLog = []
-heightLog = []
+
 # noinspection DuplicatedCode
-def testAngle(vel, grav, angle, withLogging):
+def testAngle(vel, grav, angle, wind, withLogging, distLogger, heightLogger):
     bounce = True
     currentHeight = float(0.0001)
     velX = vel*math.cos(angle)
@@ -281,16 +275,16 @@ def testAngle(vel, grav, angle, withLogging):
         alpha = math.atan2(velY, velX)
 
 
-        velX += (((1/ballMass) * (-Rd(velTot, currentHeight) * math.cos(alpha) -
-                                       Rm(velTot, currentHeight, timeCurrent, initSpin)* math.sin(alpha))) * timeIncrement)
+        velX += (((1/ballMass) * (-Rd(velTot, currentHeight, wind) * math.cos(alpha) -
+                                       Rm(velTot, currentHeight, timeCurrent, initSpin, wind)* math.sin(alpha))) * timeIncrement)
 
-        velY += + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent, initSpin) * math.cos(alpha)) -
-                                         (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * timeIncrement)
+        velY += + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent, initSpin, wind) * math.cos(alpha)) -
+                                         (Rd(velTot, currentHeight, wind) * math.sin(alpha)))) - grav) * timeIncrement)
 
         #print(findWindSPD(currentHeight))
         if withLogging:
-            distLog.append(distX)
-            heightLog.append(distY)
+            distLogger.append(distX)
+            heightLogger.append(distY)
 
         #print(i)
 
@@ -317,48 +311,89 @@ def testAngle(vel, grav, angle, withLogging):
             velTot = math.sqrt((velX ** 2) + (velY ** 2))
             alpha = math.atan2(velY, velX)
 
-            velX += (((1 / ballMass) * (-Rd(velTot, currentHeight) * math.cos(alpha) -
-                                        Rm(velTot, currentHeight, timeCurrent, newSpinInit) * math.sin(
+            velX += (((1 / ballMass) * (-Rd(velTot, currentHeight, wind) * math.cos(alpha) -
+                                        Rm(velTot, currentHeight, timeCurrent, newSpinInit, wind) * math.sin(
                         alpha))) * timeIncrement)
 
-            velY += + ((((1 / ballMass) * ((Rm(velTot, currentHeight, timeCurrent, newSpinInit) * math.cos(alpha)) -
-                                           (Rd(velTot, currentHeight) * math.sin(alpha)))) - grav) * timeIncrement)
+            velY += + ((((1 / ballMass) * ((Rm(velTot, currentHeight, timeCurrent, newSpinInit, wind) * math.cos(alpha)) -
+                                           (Rd(velTot, currentHeight, wind) * math.sin(alpha)))) - grav) * timeIncrement)
             if withLogging:
-                distLog.append(distX)
-                heightLog.append(distY)
+                distLogger.append(distX)
+                heightLogger.append(distY)
     return distX
 
 print("")
-angles = []
-distances = []
-
+anglesTailwind = []
+rangesTailwind = []
+anglesHeadwind = []
+rangesHeadwind = []
+anglesNoWind = []
+rangesNoWind = []
+distLog1 = []
+heightLog1 = []
+distLog2 = []
+heightLog2 = []
+distLog3 = []
+heightLog3 = []
 #tests angles between 0-90 deg in steps determined by the number of iterations
-iterations = 1000
+iterations = 100
 for i in range(iterations):
     angle = i*(90/iterations)
-    angles.append(angle)
-    distances.append(testAngle(velUsed, gravUsed, math.radians(angle), False))
-print(distances)
+    anglesTailwind.append(angle)
+    rangesTailwind.append(testAngle(velUsed, gravUsed, math.radians(angle),windUsed,False, None , None))
 
-#currently a placeholder plot, we can do a lot more with these
-#but currently the plot isn't particularly interesting
-plt.plot(angles, distances)
+
+for i in range(iterations):
+    angle = i*(90/iterations)
+    anglesHeadwind.append(angle)
+    rangesHeadwind.append(testAngle(velUsed, gravUsed, math.radians(angle), -windUsed,False, None , None))
+
+
+for i in range(iterations):
+    angle = i*(90/iterations)
+    anglesNoWind.append(angle)
+    rangesNoWind.append(testAngle(velUsed, gravUsed, math.radians(angle),0, False, None , None))
+
+
+plt.plot(anglesTailwind, rangesTailwind)
+plt.plot(anglesHeadwind, rangesHeadwind)
+plt.plot(anglesNoWind, rangesNoWind)
 plt.ylabel("Distance (m)")
 plt.xlabel("Angle (degrees)")
 plt.show()
 
 
-distArr = np.array(distances)
-angleIndex = np.where(distArr == max(distArr))
+tailArr = np.array(rangesTailwind)
+tailAngleIndex = np.where(tailArr == max(tailArr))
 
-print("Maximum found by brute force: " + str(distArr.max()))
-print("Found at an angle of " + str(angles[angleIndex[0][0]]) + " degrees")
+headArr = np.array(rangesHeadwind)
+headAngleIndex = np.where(headArr == max(headArr))
 
+noArr = np.array(rangesNoWind)
+noAngleIndex = np.where(noArr == max(noArr))
+
+
+print("Maximum distance found by brute force for tailwind: " + str(tailArr.max()))
+print("Found at an angle of " + str(anglesTailwind[tailAngleIndex[0][0]]) + " degrees")
+print("")
+print("Maximum distance found by brute force for headwind: " + str(headArr.max()))
+print("Found at an angle of " + str(anglesHeadwind[headAngleIndex[0][0]]) + " degrees")
+print("")
+print("Maximum distance found by brute force for no wind: " + str(noArr.max()))
+print("Found at an angle of " + str(anglesNoWind[noAngleIndex[0][0]]) + " degrees")
 
 print("")
-print("trajectory at ", angles[angleIndex[0][0]], " degrees as shown below")
+#print("trajectory at ", anglesTailwind[angleIndex[0][0]], " degrees as shown below")
+print("trajectories as shown below")
 
-testAngle(velUsed, gravUsed, math.radians(angles[angleIndex[0][0]]), True)
 
-plt.plot(distLog, heightLog)
+testAngle(velUsed, gravUsed, math.radians(anglesTailwind[tailAngleIndex[0][0]]), windUsed,True, distLog1, heightLog1)
+testAngle(velUsed, gravUsed, math.radians(anglesTailwind[headAngleIndex[0][0]]), -windUsed, True, distLog2, heightLog2)
+testAngle(velUsed, gravUsed, math.radians(anglesTailwind[noAngleIndex[0][0]]),0, True, distLog3, heightLog3)
+
+plt.plot(distLog1, heightLog1)
+plt.plot(distLog2, heightLog2)
+plt.plot(distLog3, heightLog3)
+plt.xlabel("Distance (m)")
+plt.ylabel("Height (m)")
 plt.show()
