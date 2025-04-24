@@ -68,9 +68,9 @@ print("Gravity Used: " + str(gravUsed))
 
 print("")
 print("Select Velocity Value")
-print("Input 1 for 40 ms^-1")
-print("Input 2 for 60 ms^-1")
-print("Input 3 for 75 ms^-1")
+print("Input 1 for 60 ms^-1")
+print("Input 2 for 70 ms^-1")
+print("Input 3 for 80 ms^-1")
 print("Input 4 to input your own")
 
 velInput = int(input("Enter Velocity Value: "))
@@ -88,9 +88,9 @@ print("Velocity Used: " + str(velUsed))
 
 print("")
 print("Select Wind Speed Value at Reference Height")
-print("Input 1 for 10 m/s")
-print("Input 2 for 20 m/s")
-print("Input 3 for 30 m/s")
+print("Input 1 for 1 m/s")
+print("Input 2 for 4 m/s")
+print("Input 3 for 8 m/s")
 print("Input 4 to input your own")
 windInput = int(input("Enter Wind Speed Value: "))
 if windInput == 1:
@@ -108,7 +108,7 @@ print("Select initial spin")
 print("Input 1 for Average Pro Women's Spin")
 print("Input 2 for Average Pro Men's Spin")
 print("Input 3 to input your own")
-spinPut = int(input("Enter Wind Spin Value in RPM's: "))
+spinPut = int(input("Enter Wind Spin Value in: "))
 if spinPut == 1:
     spinUsd = AvgProWomSpin
 if spinPut == 2:
