@@ -391,6 +391,7 @@ testAngle(velUsed, gravUsed, math.radians(anglesTailwind[tailAngleIndex[0][0]]),
 testAngle(velUsed, gravUsed, math.radians(anglesTailwind[headAngleIndex[0][0]]), -windUsed, True, distLog2, heightLog2)
 testAngle(velUsed, gravUsed, math.radians(anglesTailwind[noAngleIndex[0][0]]),0, True, distLog3, heightLog3)
 
+
 plt.plot(distLog1, heightLog1)
 plt.plot(distLog2, heightLog2)
 plt.plot(distLog3, heightLog3)
