@@ -219,9 +219,11 @@ def airDensity(temp, pressure, RelHumid):
             (RelHumid * math.exp((17.62*temp)/(243.12+temp)))) / (gasConstAir * gasConstWaterVap * (temp + 273.15))
 
 
-def Cl(vel, time, initSpn):
+def Cl(vel, time, initSpn, alpha, height, wind):
     w = initSpn * (math.exp(-time / decayConstant))
-    return (k * (ballRadius*1e-3) * w)/vel
+    return (k * (ballRadius*1e-3) * w)/((vel * math.cos(alpha) - findWindSPD(height, wind))**2 + (vel * math.sin(alpha)**2))
+
+
 def Cd(vel):
     if vel < 1e-2:
         vel = 1e-2
@@ -245,12 +247,12 @@ def Rd(vel, height, wind):
         height = 1e-6
     return 0.5 * Cd(vel) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height, wind)) * (vel - findWindSPD(height, wind))))
 
-def Rm(vel, height, time, initialspin, wind):
+def Rm(vel, height, time, initialspin, wind, alpha):
     if height > 1e-6:
         height = height
     else:
         height = 1e-6
-    return 0.5 * Cl(vel, time, initialspin) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height, wind))) * (vel - findWindSPD(height, wind)))
+    return 0.5 * Cl(vel, time, initialspin, alpha, height, wind) * airDensity(tempC, pressure, relHum) * ballArea * (abs((vel - findWindSPD(height, wind))) * (vel - findWindSPD(height, wind)))
 
 
 # noinspection DuplicatedCode
@@ -276,9 +278,9 @@ def testAngle(vel, grav, angle, wind, withLogging, distLogger, heightLogger):
 
 
         velX += (((1/ballMass) * (-Rd(velTot, currentHeight, wind) * math.cos(alpha) -
-                                       Rm(velTot, currentHeight, timeCurrent, initSpin, wind)* math.sin(alpha))) * timeIncrement)
+                                       Rm(velTot, currentHeight, timeCurrent, initSpin, wind, alpha)* math.sin(alpha))) * timeIncrement)
 
-        velY += + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent, initSpin, wind) * math.cos(alpha)) -
+        velY += + ((((1/ballMass) * ((Rm(velTot, currentHeight, timeCurrent, initSpin, wind, alpha) * math.cos(alpha)) -
                                          (Rd(velTot, currentHeight, wind) * math.sin(alpha)))) - grav) * timeIncrement)
 
         #print(findWindSPD(currentHeight))
@@ -312,11 +314,12 @@ def testAngle(vel, grav, angle, wind, withLogging, distLogger, heightLogger):
             alpha = math.atan2(velY, velX)
 
             velX += (((1 / ballMass) * (-Rd(velTot, currentHeight, wind) * math.cos(alpha) -
-                                        Rm(velTot, currentHeight, timeCurrent, newSpinInit, wind) * math.sin(
+                                        Rm(velTot, currentHeight, timeCurrent, newSpinInit, wind, alpha) * math.sin(
                         alpha))) * timeIncrement)
 
-            velY += + ((((1 / ballMass) * ((Rm(velTot, currentHeight, timeCurrent, newSpinInit, wind) * math.cos(alpha)) -
+            velY += + ((((1 / ballMass) * ((Rm(velTot, currentHeight, timeCurrent, newSpinInit, wind, alpha) * math.cos(alpha)) -
                                            (Rd(velTot, currentHeight, wind) * math.sin(alpha)))) - grav) * timeIncrement)
+
             if withLogging:
                 distLogger.append(distX)
                 heightLogger.append(distY)
